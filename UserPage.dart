@@ -1,0 +1,441 @@
+import 'dart:convert';
+import 'dart:html';
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'Restaurant.dart';
+import 'package:http/http.dart' as http;
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+
+class UserPage extends StatefulWidget {
+  @override
+  _UserPageState createState() => _UserPageState();
+}
+
+Widget title() {
+  return Row(
+    children: <Widget>[
+      Text(
+        'Review',
+        style: TextStyle(
+          letterSpacing: 1.0,
+        ),
+      ),
+      roundCornerYellowBox('Dekho'),
+    ],
+  );
+}
+
+Widget roundCornerYellowBox(String s) {
+  return Container(
+    margin: EdgeInsets.only(
+      left: 4,
+    ),
+    child: Text(
+      s,
+      style: TextStyle(
+        color: Colors.black,
+        letterSpacing: 1.0,
+      ),
+    ),
+    decoration: BoxDecoration(
+      color: Color(0xffffff00),
+      borderRadius: BorderRadius.all(
+        Radius.circular(8.0),
+      ),
+    ),
+  );
+}
+
+class _UserPageState extends State<UserPage> {
+  AutoCompleteTextField _searchTextField;
+  GlobalKey<AutoCompleteTextFieldState<String>> _key = new GlobalKey();
+  List<Restaurant> restaurantData = [];
+  List<City> cities = [];
+  List<Widget> restaurantWidget = [];
+  List<String> sugg = [];
+  bool loading = true, loading2 = true, first = true;
+  int data1 = 0, data2 = 5;
+
+  Widget create(Restaurant instance, int index, int loc) {
+    List<String> images = [];
+    bool wait = false;
+    int size;
+    String st = "https://reviewdekho.000webhostapp.com/" + instance.id + "/";
+    for (int i = 0; i < instance.imgs.length; ++i) {
+      var ch = instance.imgs[i];
+      if (ch != ',')
+        st += ch;
+      else {
+        images.add(st);
+        st = "https://reviewdekho.000webhostapp.com/" + instance.id + "/";
+      }
+    }
+    images.add(st);
+    size = images.length;
+    return Container(
+      margin: EdgeInsets.all(20),
+      padding: EdgeInsets.only(
+        top: 10,
+        bottom: 10,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.blue[200],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_left),
+                onPressed: () {
+                  setState(() {
+                    loc--;
+                    if (loc < 0) loc = size - 1;
+                    restaurantWidget[index] =
+                        create(restaurantData[index], index, loc);
+                  });
+                },
+              ),
+              Container(
+                height: 320,
+                width: 320,
+                child: Image.network(
+                  images[loc],
+                  fit: BoxFit.cover,
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.arrow_right),
+                onPressed: () {
+                  setState(() {
+                    loc++;
+                    if (loc == size) loc = 0;
+                    restaurantWidget[index] =
+                        create(restaurantData[index], index, loc);
+                  });
+                },
+              ),
+            ],
+          ),
+          Text(
+            instance.name,
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.blue[800],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                width: 50,
+              ),
+              Text(instance.review.toString() + '/5.00'),
+              Icon(Icons.star),
+            ],
+          ),
+          RaisedButton(
+            child: Text('Rate this restaurant'),
+            onPressed: () {
+              ScreenArguments.res = instance;
+              Navigator.of(context)
+                  .pushNamed('/UserPage/ReviewForm')
+                  .then((value) => initState());
+            },
+          ),
+        ],
+      ),
+      width: 400,
+    );
+  }
+
+  List<Restaurant> loadRestaurant(String jsonString) {
+    var parsed = json.decode(jsonString).cast<Map<String, dynamic>>();
+    return parsed.map<Restaurant>((json) => Restaurant.fromJson(json)).toList();
+  }
+
+  Future searchRestaurant(String city, String name, String all) async {
+    var url = "https://reviewdekho.000webhostapp.com/Restaurants";
+    var response = await http.post(url, body: {
+      "city": city,
+      "name": name,
+      "all": all,
+      "data1": data1.toString(),
+      "data2": data2.toString()
+    });
+    restaurantData = loadRestaurant(response.body);
+    setState(() {
+      loading = false;
+      loading2 = false;
+    });
+    restaurantWidget = [];
+    for (int i = 0; i < restaurantData.length; ++i) {
+      restaurantWidget.add(create(restaurantData[i], i, 0));
+      if (first) sugg.add(restaurantData[i].name);
+    }
+    first = false;
+  }
+
+  List<City> loadCity(String jsonString) {
+    var parsed = json.decode(jsonString).cast<Map<String, dynamic>>();
+    return parsed.map<City>((json) => City.fromJson(json)).toList();
+  }
+
+  Future searchCities() async {
+    var url = "https://reviewdekho.000webhostapp.com/Cities";
+    var response = await http.get(url);
+    setState(() {
+      loading = false;
+      loading2 = false;
+    });
+    cities = loadCity(response.body);
+    for (int i = 0; i < cities.length; ++i) {
+      sugg.add(cities[i].name);
+    }
+  }
+
+  Future getCoins() async {
+    var url = "https://reviewdekho.000webhostapp.com/Coin";
+    var response = await http.post(url, body: {"userid": ScreenArguments.name});
+    String coins = (jsonDecode(response.body)[0]["coins"]);
+    ScreenArguments.coins = int.parse(coins);
+  }
+
+  void refresh() {
+    searchCities();
+    searchRestaurant("", "", "yes");
+    getCoins();
+  }
+
+  @override
+  void initState() {
+    refresh();
+    super.initState();
+  }
+
+  Widget slivergrid() {
+    return SliverToBoxAdapter(
+      child: Wrap(
+        children: restaurantWidget,
+      ),
+    );
+  }
+
+  Widget _loading() {
+    return SliverToBoxAdapter(
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  Widget row(String s) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          s,
+          style: TextStyle(fontSize: 20.0),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //searchRestaurant();
+    var ScreenWidth = (MediaQuery.of(context).size.width);
+    return Scaffold(
+      body: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: max(ScreenWidth, 750),
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                backgroundColor: Colors.black,
+                expandedHeight: 500.0,
+                floating: true,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Container(
+                    margin: EdgeInsets.only(
+                      right: 30,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        title(),
+                        Row(
+                          children: [
+                            Text(ScreenArguments.name),
+                            Icon(
+                              Icons.panorama_fish_eye_outlined,
+                              color: Colors.yellowAccent[700],
+                            ),
+                            Text(ScreenArguments.coins.toString()),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                  background: Image.network(
+                    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80",
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              SliverAppBar(
+                toolbarHeight: 100,
+                automaticallyImplyLeading: false,
+                pinned: true,
+                title: Column(
+                  children: [
+                    loading
+                        ? Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  margin: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: _searchTextField =
+                                      AutoCompleteTextField<String>(
+                                    key: _key,
+                                    suggestions: sugg,
+                                    clearOnSubmit: false,
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'Enter City or Restsurant Name.',
+                                    ),
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                    itemBuilder: (context, item) {
+                                      return row(item);
+                                    },
+                                    itemFilter: (item, query) {
+                                      return item
+                                          .toLowerCase()
+                                          .contains(query.toLowerCase());
+                                    },
+                                    itemSorter: (a, b) {
+                                      return a.compareTo(b);
+                                    },
+                                    itemSubmitted: (item) {
+                                      setState(() {
+                                        _searchTextField
+                                            .textField.controller.text = item;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                margin: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                width: 50,
+                                child: TextFormField(
+                                  onChanged: (s) {
+                                    if (s == '0' ||
+                                        s == '1' ||
+                                        s == '2' ||
+                                        s == '3' ||
+                                        s == '4' ||
+                                        s == '5')
+                                      data1 = int.parse(s);
+                                    else
+                                      data1 = 0;
+                                  },
+                                ),
+                              ),
+                              Container(
+                                width: 10,
+                                child: Text('-'),
+                              ),
+                              Container(
+                                margin: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                width: 50,
+                                child: TextFormField(
+                                  onChanged: (s) {
+                                    if (s == '0' ||
+                                        s == '1' ||
+                                        s == '2' ||
+                                        s == '3' ||
+                                        s == '4' ||
+                                        s == '5')
+                                      data2 = int.parse(s);
+                                    else
+                                      data2 = 5;
+                                  },
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.search),
+                                onPressed: () {
+                                  setState(() {
+                                    loading2 = true;
+                                    searchRestaurant(
+                                        _searchTextField
+                                            .textField.controller.text,
+                                        _searchTextField
+                                            .textField.controller.text,
+                                        "no");
+                                    loading2 = false;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                  ],
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  width: 200,
+                  alignment: Alignment.centerRight,
+                  margin: EdgeInsets.all(10),
+                  // color: Colors.pink,
+                  child: RaisedButton(
+                    color: Colors.pink,
+                    child: Container(
+                      child: Text(
+                        'Show All',
+                        style: TextStyle(
+                          fontSize: 30,
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        loading2 = true;
+                        searchRestaurant("", "", "yes");
+                        loading2 = false;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              loading2 ? _loading() : slivergrid(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
