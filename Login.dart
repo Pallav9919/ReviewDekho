@@ -37,14 +37,15 @@ class _LoginState extends State<Login> {
   }
 
   Future login() async {
-    var url = "https://reviewdekho.000webhostapp.com/Login"; //api call for login user
+    var url =
+        "https://reviewdekho.000webhostapp.com/Login"; //api call for login user
     var response = await http
         .post(url, body: {"userid": _userid.text, "password": _password.text});
     var data = jsonDecode(response.body);
     if (data == "Login Successfull") {
       ScreenArguments.name = _userid.text;
       Navigator.of(context)
-          .pushNamed('/UserPage'); //forward to next page(practicepage)
+          .pushNamed('/MainPage'); //forward to next page(practicepage)
     } else {
       setState(() {
         _errorMessage = "*Wrong userid or password.";
@@ -85,12 +86,18 @@ class _LoginState extends State<Login> {
           children: [
             Expanded(
               child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(10.0),
+                    topLeft: Radius.circular(10.0),
+                  ),
+                  color: Color(0xFFf29544),
+                ),
                 alignment: Alignment.center,
-                color: Colors.blue[200],
                 child: Text(
                   'Login',
                   style: TextStyle(
-                    color: Colors.blue[700],
+                    color: Color(0xFFFFFFFF),
                     fontWeight: FontWeight.bold,
                     fontSize: 30,
                   ),
@@ -108,7 +115,7 @@ class _LoginState extends State<Login> {
                   child: Text(
                     'Register',
                     style: TextStyle(
-                      color: Colors.blue,
+                      color: Color(0xFFf29544),
                       fontWeight: FontWeight.bold,
                       fontSize: 30,
                     ),
@@ -120,26 +127,44 @@ class _LoginState extends State<Login> {
           ],
         ),
         Container(
-          color: Colors.blue[200],
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(10.0),
+              bottomRight: Radius.circular(10.0),
+              bottomLeft: Radius.circular(10.0),
+            ),
+            color: Color(0xFFf29544),
+          ),
           padding: EdgeInsets.all(15),
           child: Column(
             children: [
               TextFormField(
                 controller: _userid,
+                style: TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.account_box),
-                  labelText: 'Userid',
+                  prefixIcon: Icon(
+                    Icons.account_box,
+                    color: Colors.white,
+                  ),
+                  hintText: 'Userid',
+                  hintStyle: TextStyle(color: Colors.white),
                 ),
                 maxLength: 32,
                 validator: _validateUserid,
               ),
               TextFormField(
+                style: TextStyle(color: Colors.white),
                 controller: _password,
                 obscureText: _isObscure,
                 decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
+                  hintText: 'Password',
+                  hintStyle: TextStyle(color: Colors.white),
+                  prefixIcon: Icon(
+                    Icons.lock,
+                    color: Colors.white,
+                  ),
                   suffixIcon: IconButton(
+                    color: Colors.white,
                     icon: _isObscure
                         ? Icon(Icons.visibility_off)
                         : Icon(Icons.visibility),
@@ -165,15 +190,25 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
-              RaisedButton(
+              RawMaterialButton(
+                elevation: 6.0,
+                child: Center(
+                  child: Text(
+                    'Login',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.0,
+                    ),
+                  ),
+                ),
+                constraints: BoxConstraints.tightFor(
+                  width: 126.0,
+                  height: 40.0,
+                ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.0),
+                  borderRadius: BorderRadius.circular(6.0),
                 ),
-                color: Colors.blue,
-                child: Text(
-                  'Login',
-                  style: TextStyle(color: Colors.white),
-                ),
+                fillColor: Color(0xFF4C4F5E),
                 onPressed: _login,
               ),
             ],
@@ -189,15 +224,20 @@ class _LoginState extends State<Login> {
         Center(
           child: Card(
             child: Container(
-              width: 500,
+              color: Colors.white,
+              width: 400,
               margin: EdgeInsets.all(15.0),
               child: Form(
                 key: _key,
                 autovalidate: _autovalidate,
                 child: formUI(),
               ),
+              padding: EdgeInsets.all(3),
             ),
-            color: Colors.blue[50],
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
           ),
         ),
       ],
