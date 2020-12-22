@@ -428,9 +428,9 @@ class _UserPageState extends State<UserPage> {
                                         s == '3' ||
                                         s == '4' ||
                                         s == '5')
-                                      data1 = int.parse(s);
+                                      data2 = int.parse(s);
                                     else
-                                      data1 = 5;
+                                      data2 = 5;
                                   },
                                 ),
                               ),
@@ -439,12 +439,22 @@ class _UserPageState extends State<UserPage> {
                                 onPressed: () {
                                   setState(() {
                                     loading2 = true;
-                                    searchRestaurant(
-                                        _searchTextField
-                                            .textField.controller.text,
-                                        _searchTextField
-                                            .textField.controller.text,
-                                        "yes");
+                                    if (_searchTextField
+                                            .textField.controller.text ==
+                                        "")
+                                      searchRestaurant(
+                                          _searchTextField
+                                              .textField.controller.text,
+                                          _searchTextField
+                                              .textField.controller.text,
+                                          "yes");
+                                    else
+                                      searchRestaurant(
+                                          _searchTextField
+                                              .textField.controller.text,
+                                          _searchTextField
+                                              .textField.controller.text,
+                                          "no");
                                     loading2 = false;
                                   });
                                 },
