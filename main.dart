@@ -4,6 +4,9 @@ import 'package:reviewdekho/ReviewForm.dart';
 import 'Login.dart';
 import 'Register.dart';
 import 'UserPage.dart';
+import 'constants.dart';
+import 'package:reviewdekho/MainPage.dart';
+import 'package:reviewdekho/developers.dart';
 import 'package:animated_background/animated_background.dart';
 
 bool isLoginPage = true;
@@ -16,11 +19,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData.dark().copyWith(
+        primaryColor: Color(0xFF0A0E21),
+        scaffoldBackgroundColor: Color(0xFF0A0E21),
+      ),
       initialRoute: '/',
       routes: {
         '/': (context) => MyHomePage(),
-        '/UserPage': (context) => UserPage(),
-        '/UserPage/ReviewForm': (context) => ReviewForm(),
+        '/MainPage': (context) => MainPage(),
+        '/MainPage/UserPage': (context) => UserPage(),
+        '/MainPage/DevelopersPage': (context) => DevelopersPage(),
+        '/MainPage/UserPage/ReviewForm': (context) => ReviewForm(),
       },
     );
   }
@@ -43,64 +52,36 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: title(),
+        title: kLogo,
       ),
       body: Container(
         height: 1000,
-        color: Colors.amber[200],
+        color: Color(0xFF0A0E21),
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              isLoginPage ? Login(change) : Register(change),
-              Container(
-                height: 500,
-                width: 500,
-                child: Image.network(
-                  "https://reviewdekho.000webhostapp.com/restaurant.png",
-                  fit: BoxFit.fitHeight,
+          child: Padding(
+            padding: EdgeInsets.only(top: 50.0, bottom: 50.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                isLoginPage
+                    ? Expanded(child: Login(change))
+                    : Expanded(child: Register(change)),
+                Expanded(
+                  child: Container(
+                    height: 500,
+                    width: 500,
+                    child: Image.network(
+                      "https://reviewdekho.000webhostapp.com/restaurant.png",
+                      fit: BoxFit.fitHeight,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-}
-
-Widget title() {
-  return Row(
-    children: <Widget>[
-      Text(
-        'Review',
-        style: TextStyle(
-          letterSpacing: 1.0,
-        ),
-      ),
-      roundCornerYellowBox('Dekho'),
-    ],
-  );
-}
-
-Widget roundCornerYellowBox(String s) {
-  return Container(
-    margin: EdgeInsets.only(
-      left: 4,
-    ),
-    child: Text(
-      s,
-      style: TextStyle(
-        color: Colors.black,
-        letterSpacing: 1.0,
-      ),
-    ),
-    decoration: BoxDecoration(
-      color: Color(0xffffff00),
-      borderRadius: BorderRadius.all(
-        Radius.circular(8.0),
-      ),
-    ),
-  );
 }

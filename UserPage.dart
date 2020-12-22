@@ -1,49 +1,17 @@
 import 'dart:convert';
 import 'dart:html';
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'Restaurant.dart';
 import 'package:http/http.dart' as http;
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPage extends StatefulWidget {
   @override
   _UserPageState createState() => _UserPageState();
-}
-
-Widget title() {
-  return Row(
-    children: <Widget>[
-      Text(
-        'Review',
-        style: TextStyle(
-          letterSpacing: 1.0,
-        ),
-      ),
-      roundCornerYellowBox('Dekho'),
-    ],
-  );
-}
-
-Widget roundCornerYellowBox(String s) {
-  return Container(
-    margin: EdgeInsets.only(
-      left: 4,
-    ),
-    child: Text(
-      s,
-      style: TextStyle(
-        color: Colors.black,
-        letterSpacing: 1.0,
-      ),
-    ),
-    decoration: BoxDecoration(
-      color: Color(0xffffff00),
-      borderRadius: BorderRadius.all(
-        Radius.circular(8.0),
-      ),
-    ),
-  );
 }
 
 class _UserPageState extends State<UserPage> {
@@ -72,84 +40,124 @@ class _UserPageState extends State<UserPage> {
     }
     images.add(st);
     size = images.length;
-    return Container(
-      margin: EdgeInsets.all(20),
-      padding: EdgeInsets.only(
-        top: 10,
-        bottom: 10,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.blue[200],
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.arrow_left),
-                onPressed: () {
-                  setState(() {
-                    loc--;
-                    if (loc < 0) loc = size - 1;
-                    restaurantWidget[index] =
-                        create(restaurantData[index], index, loc);
-                  });
-                },
-              ),
-              Container(
-                height: 320,
-                width: 320,
-                child: Image.network(
-                  images[loc],
-                  fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () async {
+        ScreenArguments.res = instance;
+        ScreenArguments.tag = index.toString();
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('restaurant_al1', ScreenArguments.res.addressLine1);
+        prefs.setString('restaurant_al2', ScreenArguments.res.addressLine2);
+        prefs.setString('restaurant_city', ScreenArguments.res.city);
+        prefs.setString('restaurant_id', ScreenArguments.res.id);
+        prefs.setString('restaurant_imgs', ScreenArguments.res.imgs);
+        prefs.setString('restaurant_mailid', ScreenArguments.res.mailid);
+        prefs.setString('restaurant_name', ScreenArguments.res.name);
+        prefs.setString('restaurant_phoneNo', ScreenArguments.res.phoneNo);
+        prefs.setString('restaurant_review', ScreenArguments.res.review);
+        prefs.setString(
+            'restaurant_reviewCount', ScreenArguments.res.reviewCount);
+        prefs.setString('tag', index.toString());
+        Navigator.of(context)
+            .pushNamed('/MainPage/UserPage/ReviewForm')
+            .then((value) => initState());
+      },
+      child: Container(
+        margin: EdgeInsets.all(20),
+        padding: EdgeInsets.only(
+          top: 10,
+          bottom: 10,
+        ),
+        decoration: BoxDecoration(
+          color: Color(0xFF1D1E33),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(height: 20.0),
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_left,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      loc--;
+                      if (loc < 0) loc = size - 1;
+                      restaurantWidget[index] =
+                          create(restaurantData[index], index, loc);
+                    });
+                  },
                 ),
-              ),
-              IconButton(
-                icon: Icon(Icons.arrow_right),
-                onPressed: () {
-                  setState(() {
-                    loc++;
-                    if (loc == size) loc = 0;
-                    restaurantWidget[index] =
-                        create(restaurantData[index], index, loc);
-                  });
-                },
-              ),
-            ],
-          ),
-          Text(
-            instance.name,
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.blue[800],
-              fontWeight: FontWeight.bold,
+                Container(
+                  height: 360,
+                  width: 320,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF1D1E33),
+                  ),
+                  child: Hero(
+                    tag: index.toString(),
+                    child: Image.network(
+                      images[loc],
+                      fit: BoxFit.fitHeight,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_right,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      loc++;
+                      if (loc == size) loc = 0;
+                      restaurantWidget[index] =
+                          create(restaurantData[index], index, loc);
+                    });
+                  },
+                ),
+              ],
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                width: 50,
+            SizedBox(height: 20.0),
+            Text(
+              instance.name.toUpperCase(),
+              style: TextStyle(
+                fontSize: 20,
+                color: Color(0xFF8D8E98),
               ),
-              Text(instance.review.toString() + '/5.00'),
-              Icon(Icons.star),
-            ],
-          ),
-          RaisedButton(
-            child: Text('Rate this restaurant'),
-            onPressed: () {
-              ScreenArguments.res = instance;
-              Navigator.of(context)
-                  .pushNamed('/UserPage/ReviewForm')
-                  .then((value) => initState());
-            },
-          ),
-        ],
+            ),
+            SizedBox(height: 20.0),
+            Padding(
+              padding: EdgeInsets.only(right: 20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    width: 50,
+                  ),
+                  Text(
+                    instance.review.toString() + '/5.00',
+                    style: TextStyle(
+                      color: Color(0xFF8D8E98),
+                    ),
+                  ),
+                  SizedBox(width: 5.0),
+                  Icon(
+                    Icons.star,
+                    color: Colors.yellow,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20.0),
+          ],
+        ),
+        width: 400,
       ),
-      width: 400,
     );
   }
 
@@ -211,16 +219,12 @@ class _UserPageState extends State<UserPage> {
     getCoins();
   }
 
-  @override
-  void initState() {
-    refresh();
-    super.initState();
-  }
-
-  Widget slivergrid() {
+  Widget sliverGrid() {
     return SliverToBoxAdapter(
-      child: Wrap(
-        children: restaurantWidget,
+      child: Center(
+        child: Wrap(
+          children: restaurantWidget,
+        ),
       ),
     );
   }
@@ -245,19 +249,38 @@ class _UserPageState extends State<UserPage> {
     );
   }
 
+  void autoLogIn() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userId = prefs.getString('username');
+
+    if (userId != null) {
+      ScreenArguments.name = userId;
+      refresh();
+      return;
+    }
+    Navigator.of(context).pushNamed('/');
+  }
+
+  void initState() {
+    super.initState();
+    autoLogIn();
+  }
+
   @override
   Widget build(BuildContext context) {
     //searchRestaurant();
-    var ScreenWidth = (MediaQuery.of(context).size.width);
+    var screenWidth = (MediaQuery.of(context).size.width);
     return Scaffold(
+      backgroundColor: Color(0xFF0A0E21),
       body: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: SizedBox(
-          width: max(ScreenWidth, 750),
+          width: max(screenWidth, 750),
           child: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar(
-                backgroundColor: Colors.black,
+                backgroundColor: Color(0xFF0A0F21),
+                elevation: 10.0,
                 expandedHeight: 500.0,
                 floating: true,
                 pinned: true,
@@ -269,10 +292,14 @@ class _UserPageState extends State<UserPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        title(),
+                        Padding(
+                          padding: EdgeInsets.only(top: 12),
+                          child: kLogo,
+                        ),
                         Row(
                           children: [
                             Text(ScreenArguments.name),
+                            SizedBox(width: 15),
                             Icon(
                               Icons.panorama_fish_eye_outlined,
                               color: Colors.yellowAccent[700],
@@ -290,6 +317,8 @@ class _UserPageState extends State<UserPage> {
                 ),
               ),
               SliverAppBar(
+                backgroundColor: Color(0xFF040505),
+                elevation: 10.0,
                 toolbarHeight: 100,
                 automaticallyImplyLeading: false,
                 pinned: true,
@@ -304,6 +333,7 @@ class _UserPageState extends State<UserPage> {
                               Expanded(
                                 child: Container(
                                   margin: EdgeInsets.all(10),
+                                  padding: EdgeInsets.only(left: 10),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(5),
@@ -314,11 +344,16 @@ class _UserPageState extends State<UserPage> {
                                     suggestions: sugg,
                                     clearOnSubmit: false,
                                     decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
                                       hintText:
-                                          'Enter City or Restsurant Name.',
+                                          '   Enter City or Restaurant Name',
+                                      hintStyle: TextStyle(color: Colors.black),
                                     ),
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
                                     itemBuilder: (context, item) {
                                       return row(item);
                                     },
@@ -339,14 +374,21 @@ class _UserPageState extends State<UserPage> {
                                   ),
                                 ),
                               ),
+                              SizedBox(width: 20),
                               Container(
-                                margin: EdgeInsets.all(10),
+                                height: 50.0,
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(5),
                                 ),
                                 width: 50,
+                                padding: EdgeInsets.only(
+                                  left: 19.5,
+                                  right: 19.5,
+                                ),
                                 child: TextFormField(
+                                  style: TextStyle(
+                                      color: Colors.black, fontSize: 18),
                                   onChanged: (s) {
                                     if (s == '0' ||
                                         s == '1' ||
@@ -360,18 +402,25 @@ class _UserPageState extends State<UserPage> {
                                   },
                                 ),
                               ),
+                              SizedBox(width: 10),
                               Container(
-                                width: 10,
                                 child: Text('-'),
                               ),
+                              SizedBox(width: 10),
                               Container(
-                                margin: EdgeInsets.all(10),
+                                height: 50.0,
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(5),
                                 ),
                                 width: 50,
+                                padding: EdgeInsets.only(
+                                  left: 19.5,
+                                  right: 19.5,
+                                ),
                                 child: TextFormField(
+                                  style: TextStyle(
+                                      color: Colors.black, fontSize: 18),
                                   onChanged: (s) {
                                     if (s == '0' ||
                                         s == '1' ||
@@ -379,9 +428,9 @@ class _UserPageState extends State<UserPage> {
                                         s == '3' ||
                                         s == '4' ||
                                         s == '5')
-                                      data2 = int.parse(s);
+                                      data1 = int.parse(s);
                                     else
-                                      data2 = 5;
+                                      data1 = 5;
                                   },
                                 ),
                               ),
@@ -395,7 +444,7 @@ class _UserPageState extends State<UserPage> {
                                             .textField.controller.text,
                                         _searchTextField
                                             .textField.controller.text,
-                                        "no");
+                                        "yes");
                                     loading2 = false;
                                   });
                                 },
@@ -431,7 +480,58 @@ class _UserPageState extends State<UserPage> {
                   ),
                 ),
               ),
-              loading2 ? _loading() : slivergrid(),
+              loading2 ? _loading() : sliverGrid(),
+              // SizedBox(height: 40),
+              SliverPadding(
+                padding: EdgeInsets.only(top: 80),
+                sliver: SliverToBoxAdapter(
+                  child: Container(
+                    height: 100,
+                    color: Colors.black26,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () {},
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.only(right: 150),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                        context, '/MainPage/DevelopersPage');
+                                  },
+                                  child: Text(
+                                    "Know your developers",
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      color: Colors.white54,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(left: 150),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(context, '/MainPage');
+                                  },
+                                  child: Text(
+                                    "Return to the Main Page",
+                                    style: TextStyle(
+                                        fontSize: 24, color: Colors.white54),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

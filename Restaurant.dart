@@ -48,4 +48,5 @@ class ScreenArguments {
   static String name = "";
   static int coins = 0;
   static Restaurant res;
+  static String tag = "";
 }

@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'Restaurant.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Function st;
 
@@ -61,8 +63,11 @@ class _RegisterState extends State<Register> {
       });
     } else {
       ScreenArguments.name = _userid.text;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('username', _userid.text);
+      ScreenArguments.name = _userid.text;
       Navigator.of(context)
-          .pushNamed('/UserPage'); //forward to next page(practicepage)
+          .pushNamed('/MainPage'); //forward to next page(practicepage)
     }
   }
 
@@ -78,7 +83,7 @@ class _RegisterState extends State<Register> {
 
   String _validateUserid(String val) {
     if (val.length == 0) {
-      return "this field is required";
+      return "This field is required!";
     }
     return null;
   }
@@ -92,8 +97,8 @@ class _RegisterState extends State<Register> {
       return null;
   }
 
-  String _validateEmail(String val){
-    if(EmailValidator.validate(val))
+  String _validateEmail(String val) {
+    if (EmailValidator.validate(val))
       return null;
     else
       return "Wrong Email id";
@@ -114,7 +119,7 @@ class _RegisterState extends State<Register> {
                   child: Text(
                     'Login',
                     style: TextStyle(
-                      color: Colors.blue,
+                      color: Color(0xFFf29544),
                       fontWeight: FontWeight.bold,
                       fontSize: 30,
                     ),
@@ -126,11 +131,17 @@ class _RegisterState extends State<Register> {
             Expanded(
               child: Container(
                 alignment: Alignment.center,
-                color: Colors.blue[200],
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(10.0),
+                    topLeft: Radius.circular(10.0),
+                  ),
+                  color: Color(0xFFf29544),
+                ),
                 child: Text(
                   'Register',
                   style: TextStyle(
-                    color: Colors.blue[700],
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 30,
                   ),
@@ -141,62 +152,96 @@ class _RegisterState extends State<Register> {
           ],
         ),
         Container(
-          color: Colors.blue[200],
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10.0),
+              bottomRight: Radius.circular(10.0),
+              bottomLeft: Radius.circular(10.0),
+            ),
+            color: Color(0xFFf29544),
+          ),
           padding: EdgeInsets.all(15),
           child: Column(
             children: [
               TextFormField(
                 controller: _userid,
+                style: TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.account_box),
-                  labelText: 'Userid',
+                  prefixIcon: Icon(Icons.account_box, color: Colors.white),
+                  hintText: 'Userid',
+                  hintStyle: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
                 maxLength: 32,
                 validator: _validateUserid,
               ),
               TextFormField(
                 controller: _fname,
+                style: TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.account_circle_outlined),
-                  labelText: 'first name',
+                  prefixIcon:
+                      Icon(Icons.account_circle_outlined, color: Colors.white),
+                  hintText: 'First Name',
+                  hintStyle: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
                 maxLength: 32,
                 validator: _validateUserid,
               ),
               TextFormField(
                 controller: _lname,
+                style: TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.account_circle_outlined),
-                  labelText: 'last name',
+                  prefixIcon:
+                      Icon(Icons.account_circle_outlined, color: Colors.white),
+                  hintText: 'Last Name',
+                  hintStyle: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
                 maxLength: 32,
                 validator: _validateUserid,
               ),
               TextFormField(
                 controller: _emailid,
+                style: TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.email),
-                  labelText: 'Email id',
+                  prefixIcon: Icon(Icons.email, color: Colors.white),
+                  hintText: 'Email id',
+                  hintStyle: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
                 maxLength: 32,
                 validator: _validateEmail,
               ),
               TextFormField(
                 controller: _city,
+                style: TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.location_city),
-                  labelText: 'city',
+                  prefixIcon: Icon(Icons.location_city, color: Colors.white),
+                  hintText: 'City',
+                  hintStyle: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
                 maxLength: 32,
                 validator: _validateUserid,
               ),
               TextFormField(
                 controller: _password,
+                style: TextStyle(color: Colors.white),
                 obscureText: _isObscure,
                 decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
+                  hintText: 'Password',
+                  hintStyle: TextStyle(
+                    color: Colors.white,
+                  ),
+                  prefixIcon: Icon(Icons.lock, color: Colors.white),
                   suffixIcon: IconButton(
+                    color: Colors.white,
                     icon: _isObscure
                         ? Icon(Icons.visibility_off)
                         : Icon(Icons.visibility),
@@ -222,17 +267,38 @@ class _RegisterState extends State<Register> {
                   ),
                 ),
               ),
-              RaisedButton(
+              RawMaterialButton(
+                elevation: 6.0,
+                child: Center(
+                  child: Text(
+                    'Register',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.0,
+                    ),
+                  ),
+                ),
+                constraints: BoxConstraints.tightFor(
+                  width: 126.0,
+                  height: 40.0,
+                ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.0),
+                  borderRadius: BorderRadius.circular(6.0),
                 ),
-                color: Colors.blue,
-                child: Text(
-                  'Register',
-                  style: TextStyle(color: Colors.white),
-                ),
+                fillColor: Color(0xFF4C4F5E),
                 onPressed: _register,
               ),
+              // RaisedButton(
+              //   shape: RoundedRectangleBorder(
+              //     borderRadius: BorderRadius.circular(18.0),
+              //   ),
+              //   color: Colors.blue,
+              //   child: Text(
+              //     'Register',
+              //     style: TextStyle(color: Colors.white),
+              //   ),
+              //   onPressed: _register,
+              // ),
             ],
           ),
         ),
@@ -256,8 +322,12 @@ class _RegisterState extends State<Register> {
                 autovalidate: _autovalidate,
                 child: formUI(),
               ),
+              padding: EdgeInsets.all(3),
             ),
-            color: Colors.blue[50],
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
           ),
         ),
       ],
